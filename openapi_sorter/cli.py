@@ -31,7 +31,3 @@ def main():
         kwargs.update({'is_overwrite': args.overwrite})
 
     OpenApiSorter.sort(**kwargs)
-
-
-if __name__ == '__main__':
-    main()
