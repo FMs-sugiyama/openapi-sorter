@@ -1,12 +1,16 @@
 import argparse
 
+from openapi_sorter.openapi_sorter import OpenApiSorter
+
 
 def main():
-    parser = argparse.ArgumentParser(description='OpenAPI-Sorter is a utility for parsing, sorting,'
-                                                 ' and outputting OpenAPI YAML files by organizing path,'
-                                                 ' model, and other notations. It helps maintain clean and '
-                                                 'well-structured API documentation by ensuring consistent '
-                                                 'ordering of components in the YAML file.')
+    parser = argparse.ArgumentParser(
+        description='OpenAPI-Sorter is a utility for parsing, sorting,'
+        ' and outputting OpenAPI YAML files by organizing path,'
+        ' model, and other notations. It helps maintain clean and '
+        'well-structured API documentation by ensuring consistent '
+        'ordering of components in the YAML file.'
+    )
 
     group = parser.add_mutually_exclusive_group(required=True)
 
@@ -17,16 +21,16 @@ def main():
 
     args = parser.parse_args()
 
-    # Call your main function or script with the provided argument
-    print(args.input)
+    kwargs = {}
+
+    kwargs.update({'input_file': args.input})
 
     if args.output:
-        print(args.output)
-        # your_main_function(arg1=args.arg1)
+        kwargs.update({'output_file': args.output})
     elif args.overwrite:
-        print(args.overwrite)
-        pass
-        # your_main_function(arg2=args.arg2)
+        kwargs.update({'is_overwrite': args.overwrite})
+
+    OpenApiSorter.sort(**kwargs)
 
 
 if __name__ == '__main__':

@@ -8,12 +8,24 @@ license = "MIT License"
 [tool.poetry.dependencies]
 python = "^3.8"
 argparse = "^1.4.0"
+PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+line_length = 120
+balanced_wrapping = true
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+
 
 [tool.poetry.scripts]
 openapi-sorter = 'openapi_sorter.cli:main'
