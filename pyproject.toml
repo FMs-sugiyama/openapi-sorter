@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "openapi-sorter"
+version = "0.1.0"
+description = "OpenAPI-Sorter is a utility for parsing, sorting, and outputting OpenAPI YAML files by organizing path, model, and other notations. It helps maintain clean and well-structured API documentation by ensuring consistent ordering of components in the YAML file."
+authors = ["Sugiyama Tsuyoshi <sugiyama@fullmarks.co.jp>"]
+license = "MIT License"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
