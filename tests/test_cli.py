@@ -21,7 +21,6 @@ class TestCli(TestCase):
             main()
         except SystemExit:
             captured = self.capsys.readouterr()
-            print(captured)
             assert captured.err == (
                 'usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) input'
                 '\n'
@@ -35,11 +34,23 @@ class TestCli(TestCase):
             main()
         except SystemExit:
             captured = self.capsys.readouterr()
-            print(captured)
             assert captured.err == (
                 'usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) input'
                 '\n'
                 'openapi_sorter: error: one of the arguments -o/--output --overwrite is required'
+                '\n'
+            )
+
+    @patch('sys.argv', ['openapi_sorter', 'input.yaml', '--overwrite', '--output', 'output.yaml'])
+    def test_main_both_output(self):
+        try:
+            main()
+        except SystemExit:
+            captured = self.capsys.readouterr()
+            assert captured.err == (
+                'usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) input'
+                '\n'
+                'openapi_sorter: error: argument -o/--output: not allowed with argument --overwrite'
                 '\n'
             )
 
