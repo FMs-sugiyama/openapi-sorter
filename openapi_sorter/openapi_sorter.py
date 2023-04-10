@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import List
 
 import yaml
@@ -6,7 +7,6 @@ import yaml
 class OpenApiSorter:
     @classmethod
     def sort(cls, input_file: str, output_file: str = None, is_overwrite: bool = False):
-        print(output_file)
         if is_overwrite:
             output_file = input_file
 
