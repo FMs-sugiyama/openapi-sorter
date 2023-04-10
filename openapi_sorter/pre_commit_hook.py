@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 
 from openapi_sorter.openapi_sorter import OpenApiSorter
