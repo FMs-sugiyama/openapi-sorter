@@ -1,6 +1,4 @@
 import tempfile
-from shutil import copyfile
-from time import sleep
 from unittest import TestCase
 
 import yaml
@@ -29,18 +27,36 @@ paths:
     get:
       summary: Your GET endpoint
       tags: []
-      responses: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Charlie'
       operationId: get-charlie
   /bravo:
     get:
       summary: Your GET endpoint
       tags: []
-      responses: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bravo'
       operationId: get-bravo
   /alpha:
     get:
       summary: Your GET endpoint
-      responses: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alpha'
       operationId: get-alpha
 components:
   schemas:
@@ -107,8 +123,53 @@ tags:
         finally:
             pass
 
+    def test_sort_no_sort(self):
+        with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
+            dummy_file.write('')
+            dummy_file.flush()
+
+            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+
+            assert not result
+            assert error == f'{dummy_file.name} is not YAML file.'
+
+        with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
+            dummy_file.write('a')
+            dummy_file.flush()
+
+            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+
+            assert not result
+            assert error == f'{dummy_file.name} is not OpenAPI file.'
+
+        with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
+            dummy_file.write('alpha: bravo')
+            dummy_file.flush()
+
+            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+
+            assert not result
+            assert error == f'{dummy_file.name} is not OpenAPI file.'
+
+        with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
+            dummy_file.write(
+                '''
+key1: value1
+  key2: value2
+'''
+            )
+            dummy_file.flush()
+
+            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+
+            assert not result
+            assert error == f'{dummy_file.name} is not YAML file.'
+
     def test_sort_overwrite(self):
-        OpenApiSorter.sort(input_file=self.input_file_name, is_overwrite=True)
+        result, error = OpenApiSorter.sort(input_file=self.input_file_name, is_overwrite=True)
+
+        assert result
+        assert error is None
 
         openapi_json = yaml.load(
             open(
@@ -138,8 +199,10 @@ tags:
 
     def test_sort_output(self):
         with tempfile.NamedTemporaryFile() as dest:
+            result, error = OpenApiSorter.sort(input_file=self.input_file_name, output_file=dest.name)
 
-            OpenApiSorter.sort(input_file=self.input_file_name, output_file=dest.name)
+            assert result
+            assert error is None
 
             openapi_json = yaml.load(
                 open(

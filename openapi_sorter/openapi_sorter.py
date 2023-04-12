@@ -1,12 +1,24 @@
+import traceback
 from pprint import pprint
-from typing import List
+from typing import List, Optional, Tuple
 
 import yaml
+from openapi_spec_validator import validate_spec
+from openapi_spec_validator.readers import read_from_filename
+from openapi_spec_validator.validation.exceptions import OpenAPIValidationError, ValidatorDetectError
+from yaml import YAMLError
+from yaml.scanner import ScannerError
 
 
 class OpenApiSorter:
     @classmethod
-    def sort(cls, input_file: str, output_file: str = None, is_overwrite: bool = False):
+    def sort(cls, input_file: str, output_file: str = None, is_overwrite: bool = False) -> Tuple[bool, Optional[str]]:
+        if not cls.is_valid_yaml(input_file=input_file):
+            return False, f'{input_file} is not YAML file.'
+
+        if not cls.is_valid_openapi(input_file=input_file):
+            return False, f'{input_file} is not OpenAPI file.'
+
         if is_overwrite:
             output_file = input_file
 
@@ -44,9 +56,36 @@ class OpenApiSorter:
         ) as f:
             yaml.dump(openapi_json, f, allow_unicode=True, sort_keys=False)
 
+        return True, None
+
     @classmethod
     def _represent_str(cls, dumper, instance):
         if "\n" in instance:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style='|')
         else:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance)
+
+    @classmethod
+    def is_valid_openapi(cls, input_file: str) -> bool:
+        if not cls.is_valid_yaml(input_file=input_file):
+            return False
+
+        try:
+            # If no exception is raised by validate_spec(), the spec is valid.
+            spec_dict, spec_url = read_from_filename(input_file)
+
+            validate_spec(spec_dict)
+
+            return True
+        except (OpenAPIValidationError, ValidatorDetectError):
+            traceback.print_exc()
+            return False
+
+    @classmethod
+    def is_valid_yaml(cls, input_file: str):
+        try:
+            with open(input_file, "r") as file:
+                data = yaml.safe_load(file)
+            return data is not None
+        except (YAMLError, ScannerError):
+            return False

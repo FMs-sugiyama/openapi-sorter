@@ -9,6 +9,7 @@ license = "MIT License"
 python = "^3.8"
 argparse = "^1.4.0"
 PyYAML = "^6.0"
+openapi-spec-validator = "^0.5.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.0"

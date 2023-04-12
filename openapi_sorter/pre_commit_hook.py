@@ -7,9 +7,13 @@ from openapi_sorter.openapi_sorter import OpenApiSorter
 
 def format_files():
     file_paths = sys.argv[1:]
+
+    errors = []
     for file_path in file_paths:
-        OpenApiSorter().sort(input_file=file_path, is_overwrite=True)
+        result, error = OpenApiSorter().sort(input_file=file_path, is_overwrite=True)
 
+        if not result:
+            errors.append(error)
 
-if __name__ == '__main__':
-    pass
+    if errors:
+        sys.exit(1)
