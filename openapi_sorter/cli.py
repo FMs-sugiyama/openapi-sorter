@@ -20,16 +20,7 @@ def main():
     group.add_argument('-o', '--output', help='Path to the output file')
     group.add_argument('--overwrite', action='store_true', help='Overwrite to the input file')
 
-    parser.add_argument(
-        '--allow-multiple',
-        action='store_true',
-        help='explicitly enable processing of multiple input files (only valid with --overwrite)',
-    )
-
     args = parser.parse_args()
-
-    if not args.allow_multiple and len(args.inputs) > 1:
-        parser.error("processing multiple files requires the '--allow-multiple' option")
 
     if args.output and len(args.inputs) > 1:
         parser.error("the '--output' option can only be used when processing a single input file")

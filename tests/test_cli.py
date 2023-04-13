@@ -26,7 +26,7 @@ class TestCli(TestCase):
             captured = self.capsys.readouterr()
 
             assert re.sub(r'.[\s]{2,}', ' ', captured.err) == (
-                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) [--allow-multiple FILE [FILE ...]
+                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) FILE [FILE ...]
 openapi_sorter: error: the following arguments are required: FILE
 '''
             )
@@ -38,7 +38,7 @@ openapi_sorter: error: the following arguments are required: FILE
         except SystemExit:
             captured = self.capsys.readouterr()
             assert re.sub(r'.[\s]{2,}', ' ', captured.err) == (
-                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) [--allow-multiple FILE [FILE ...]
+                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) FILE [FILE ...]
 openapi_sorter: error: one of the arguments -o/--output --overwrite is required
 '''
             )
@@ -51,25 +51,12 @@ openapi_sorter: error: one of the arguments -o/--output --overwrite is required
             captured = self.capsys.readouterr()
 
             assert re.sub(r'.[\s]{2,}', ' ', captured.err) == (
-                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) [--allow-multiple FILE [FILE ...]
+                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) FILE [FILE ...]
 openapi_sorter: error: argument -o/--output: not allowed with argument --overwrite
 '''
             )
 
-    @patch('sys.argv', ['openapi_sorter', 'input-1.yaml', 'input-2.yaml', '--overwrite'])
-    def test_main_multiple_inputs_and_no_allow_multiple(self):
-        try:
-            main()
-        except SystemExit:
-            captured = self.capsys.readouterr()
-
-            assert re.sub(r'.[\s]{2,}', ' ', captured.err) == (
-                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) [--allow-multiple FILE [FILE ...]
-openapi_sorter: error: processing multiple files requires the '--allow-multiple' option
-'''
-            )
-
-    @patch('sys.argv', ['openapi_sorter', 'input-1.yaml', 'input-2.yaml', '-o', 'output.yaml', '--allow-multiple'])
+    @patch('sys.argv', ['openapi_sorter', 'input-1.yaml', 'input-2.yaml', '-o', 'output.yaml'])
     def test_main_multiple_inputs_and_output(self):
         try:
             main()
@@ -77,12 +64,12 @@ openapi_sorter: error: processing multiple files requires the '--allow-multiple'
             captured = self.capsys.readouterr()
 
             assert re.sub(r'.[\s]{2,}', ' ', captured.err) == (
-                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) [--allow-multiple FILE [FILE ...]
+                '''usage: openapi_sorter [-h] (-o OUTPUT | --overwrite) FILE [FILE ...]
 openapi_sorter: error: the '--output' option can only be used when processing a single input file
 '''
             )
 
-    @patch('sys.argv', ['openapi_sorter', 'input-1.yaml', 'input-2.yaml', '--overwrite', '--allow-multiple'])
+    @patch('sys.argv', ['openapi_sorter', 'input-1.yaml', 'input-2.yaml', '--overwrite'])
     @patch.object(OpenApiSorter, 'sort')
     def test_main_overwrite_multiple(self, sort: Mock):
         sort.return_value = (True, [])

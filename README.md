@@ -35,7 +35,7 @@ python openapi_sorter_cli.py input_file.yaml --overwrite
 To sort multiple OpenAPI YAML files and overwrite the originals:
 
 ```
-python openapi_sorter_cli.py input_file1.yaml input_file2.yaml --overwrite --allow-multiple
+python openapi_sorter_cli.py input_file1.yaml input_file2.yaml --overwrite
 ```
 
 ### Pre-commit Hook
@@ -70,7 +70,6 @@ With the pre-commit hook set up, OpenAPI-Sorter will automatically sort and vali
 ## Note
 
 - The `--output` option can only be used when processing a single input file.
-- The `--allow-multiple` option is required when processing multiple input files and can only be used with the `--overwrite` option.
 
 
 ## Contributing
