@@ -1,6 +1,7 @@
 - id: openapi-sort
   name: OpenAPI-Sorter
   description: OpenAPI-Sorter is a utility for parsing, sorting, and outputting OpenAPI YAML files by organizing path, model, and other notations. It helps maintain clean and well-structured API documentation by ensuring consistent ordering of components in the YAML file.
-  entry: format_file
+  entry: openapi_sorter
+  args: [--overwrite, --allow-multiple]
   language: python
   types: [yaml]

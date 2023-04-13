@@ -32,5 +32,4 @@ skip-string-normalization = true
 
 
 [tool.poetry.scripts]
-openapi-sorter = 'openapi_sorter.cli:main'
-format_file = 'openapi_sorter.pre_commit_hook:format_files'
+openapi_sorter = 'openapi_sorter.cli:main'

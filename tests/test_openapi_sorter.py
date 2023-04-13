@@ -128,28 +128,28 @@ tags:
             dummy_file.write('')
             dummy_file.flush()
 
-            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+            result, errors = OpenApiSorter.sort(input_files=[dummy_file.name], is_overwrite=True)
 
             assert not result
-            assert error == f'{dummy_file.name} is not YAML file.'
+            assert errors == [f'{dummy_file.name} is not YAML file.']
 
         with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
             dummy_file.write('a')
             dummy_file.flush()
 
-            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+            result, errors = OpenApiSorter.sort(input_files=[dummy_file.name], is_overwrite=True)
 
             assert not result
-            assert error == f'{dummy_file.name} is not OpenAPI file.'
+            assert errors == [f'{dummy_file.name} is not OpenAPI file.']
 
         with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
             dummy_file.write('alpha: bravo')
             dummy_file.flush()
 
-            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+            result, errors = OpenApiSorter.sort(input_files=[dummy_file.name], is_overwrite=True)
 
             assert not result
-            assert error == f'{dummy_file.name} is not OpenAPI file.'
+            assert errors == [f'{dummy_file.name} is not OpenAPI file.']
 
         with tempfile.NamedTemporaryFile() as src, open(src.name, 'w') as dummy_file:
             dummy_file.write(
@@ -160,16 +160,16 @@ key1: value1
             )
             dummy_file.flush()
 
-            result, error = OpenApiSorter.sort(input_file=dummy_file.name, is_overwrite=True)
+            result, errors = OpenApiSorter.sort(input_files=[dummy_file.name], is_overwrite=True)
 
             assert not result
-            assert error == f'{dummy_file.name} is not YAML file.'
+            assert errors == [f'{dummy_file.name} is not YAML file.']
 
     def test_sort_overwrite(self):
-        result, error = OpenApiSorter.sort(input_file=self.input_file_name, is_overwrite=True)
+        result, errors = OpenApiSorter.sort(input_files=[self.input_file_name], is_overwrite=True)
 
         assert result
-        assert error is None
+        assert not errors
 
         openapi_json = yaml.load(
             open(
@@ -199,10 +199,10 @@ key1: value1
 
     def test_sort_output(self):
         with tempfile.NamedTemporaryFile() as dest:
-            result, error = OpenApiSorter.sort(input_file=self.input_file_name, output_file=dest.name)
+            result, errors = OpenApiSorter.sort(input_files=[self.input_file_name], output_file=dest.name)
 
             assert result
-            assert error is None
+            assert not errors
 
             openapi_json = yaml.load(
                 open(
