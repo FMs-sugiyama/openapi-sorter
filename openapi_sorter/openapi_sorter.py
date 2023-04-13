@@ -60,6 +60,7 @@ class OpenApiSorter:
                 output_file,
                 mode='w',
                 encoding='utf_8',
+                newline='\n',
             ) as f:
                 yaml.dump(openapi_json, f, allow_unicode=True, sort_keys=False)
 
