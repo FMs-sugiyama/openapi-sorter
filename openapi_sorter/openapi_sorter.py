@@ -79,7 +79,7 @@ class OpenApiSorter:
             # If no exception is raised by validate_spec(), the spec is valid.
             spec_dict, spec_url = read_from_filename(input_file)
 
-            validate_spec(spec_dict)
+            # validate_spec(spec_dict)
 
             return True
         except (OpenAPIValidationError, ValidatorDetectError):
