@@ -1,6 +1,8 @@
+import json
 import traceback
 from pprint import pprint
 from typing import List, Optional, Tuple
+import re
 
 import yaml
 from openapi_spec_validator import validate_spec
@@ -11,6 +13,8 @@ from yaml.scanner import ScannerError
 
 
 class OpenApiSorter:
+    _paths: list[str] = []
+
     @classmethod
     def sort(
         cls, input_files: List[str], output_file: str = None, is_overwrite: bool = False
@@ -41,6 +45,7 @@ class OpenApiSorter:
             for key, value in openapi_json.items():
                 if key == 'paths':
                     paths = sorted([path for path, _ in value.items()], key=lambda x: x)
+                    cls._paths = [path for path in paths if re.search(r'{[a-zA-Z0-9]+}', path)]
 
                     new_value = {path: value.get(path) for path in paths}
                     openapi_json.update({'paths': new_value})
@@ -68,7 +73,9 @@ class OpenApiSorter:
 
     @classmethod
     def _represent_str(cls, dumper, instance):
-        if "\n" in instance:
+        if instance in cls._paths:
+            return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
+        elif "\n" in instance:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style='|')
         else:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance)
