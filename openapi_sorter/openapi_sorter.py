@@ -1,8 +1,8 @@
 import json
+import re
 import traceback
 from pprint import pprint
 from typing import List, Optional, Tuple
-import re
 
 import yaml
 from openapi_spec_validator import validate_spec
@@ -13,7 +13,7 @@ from yaml.scanner import ScannerError
 
 
 class OpenApiSorter:
-    _paths: list[str] = []
+    _paths: List[str] = []
 
     @classmethod
     def sort(
@@ -67,7 +67,7 @@ class OpenApiSorter:
                 encoding='utf_8',
                 newline='\n',
             ) as f:
-                yaml.dump(openapi_json, f, allow_unicode=True, sort_keys=False)
+                yaml.dump(openapi_json, f, allow_unicode=True, sort_keys=False, indent=2)
 
         return not errors, errors
 
