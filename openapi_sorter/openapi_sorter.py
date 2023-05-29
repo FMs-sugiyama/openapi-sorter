@@ -31,7 +31,7 @@ class OpenApiSorter:
             case dict():
                 for key, value in definitions.items():
                     match key:
-                        case 'description' | 'example':
+                        case 'description' | 'example' | 'summary':
                             cls._check_indention(target=value)
                         case 'path':
                             cls._check_path(path=value)
