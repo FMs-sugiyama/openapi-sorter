@@ -2,7 +2,7 @@ import json
 import re
 import traceback
 from pprint import pprint
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any
 
 import yaml
 from openapi_spec_validator import validate_spec
@@ -13,7 +13,33 @@ from yaml.scanner import ScannerError
 
 
 class OpenApiSorter:
-    _paths: List[str] = []
+    _targets: List[str] = []
+
+    @classmethod
+    def _check_path(cls, path: str):
+        if re.search(r'{[a-zA-Z0-9]+}', path):
+            cls._targets.append(path)
+
+    @classmethod
+    def _check_indention(cls, target: Any):
+        if isinstance(target, str) and not re.search(r'\n|\r|\r\n', target):
+            cls._targets.append(target)
+
+    @classmethod
+    def _check_quotation(cls, definitions: Any):
+        match definitions:
+            case dict():
+                for key, value in definitions.items():
+                    match key:
+                        case 'description' | 'example':
+                            cls._check_indention(target=value)
+                        case 'path':
+                            cls._check_path(path=value)
+                        case _:
+                            cls._check_quotation(definitions=value)
+            case list():
+                for definition in definitions:
+                    cls._check_quotation(definitions=definition)
 
     @classmethod
     def sort(
@@ -42,11 +68,13 @@ class OpenApiSorter:
                 Loader=yaml.SafeLoader,
             )
 
+            # 1ファイルごとに初期化
+            cls._targets = []
+            cls._check_quotation(definitions=openapi_json)
+
             for key, value in openapi_json.items():
                 if key == 'paths':
                     paths = sorted([path for path, _ in value.items()], key=lambda x: x)
-                    cls._paths = [path for path in paths if re.search(r'{[a-zA-Z0-9]+}', path)]
-
                     new_value = {path: value.get(path) for path in paths}
                     openapi_json.update({'paths': new_value})
                 elif key == 'components':
@@ -73,7 +101,7 @@ class OpenApiSorter:
 
     @classmethod
     def _represent_str(cls, dumper, instance):
-        if instance in cls._paths:
+        if instance in cls._targets:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
         elif "\n" in instance:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style='|')
