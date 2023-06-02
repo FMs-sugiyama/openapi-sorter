@@ -16,30 +16,18 @@ class OpenApiSorter:
     _targets: List[str] = []
 
     @classmethod
-    def _check_path(cls, path: str):
-        if re.search(r'{[a-zA-Z0-9]+}', path):
-            cls._targets.append(path)
+    def _check_paths(cls, paths: dict):
+        for path_name, path_items in paths.items():
+            if re.search(r'{[a-zA-Z0-9]+}', path_name):
+                cls._targets.append(path_name)
 
     @classmethod
-    def _check_indention(cls, target: Any):
-        if isinstance(target, str) and not re.search(r'\n|\r|\r\n', target):
-            cls._targets.append(target)
-
-    @classmethod
-    def _check_quotation(cls, definitions: Any):
-        match definitions:
-            case dict():
-                for key, value in definitions.items():
-                    match key:
-                        case 'description' | 'example' | 'summary':
-                            cls._check_indention(target=value)
-                        case 'path':
-                            cls._check_path(path=value)
-                        case _:
-                            cls._check_quotation(definitions=value)
-            case list():
-                for definition in definitions:
-                    cls._check_quotation(definitions=definition)
+    def _check_servers(cls, servers: list[dict]):
+        for server in servers:
+            if description := server.get("description"):
+                cls._targets.append(description)
+            if example := server.get("example"):
+                cls._targets.append(example)
 
     @classmethod
     def sort(
@@ -70,10 +58,11 @@ class OpenApiSorter:
 
             # 1ファイルごとに初期化
             cls._targets = []
-            cls._check_quotation(definitions=openapi_json)
+            # cls._check_quotation(definitions=openapi_json)
 
             for key, value in openapi_json.items():
                 if key == 'paths':
+                    cls._check_paths(paths=value)
                     paths = sorted([path for path, _ in value.items()], key=lambda x: x)
                     new_value = {path: value.get(path) for path in paths}
                     openapi_json.update({'paths': new_value})
@@ -86,6 +75,8 @@ class OpenApiSorter:
                 elif key == 'tags':
                     if isinstance(value, List):
                         openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
+                elif key == 'servers':
+                    cls._check_servers(servers=value)
 
             yaml.add_representer(str, cls._represent_str)
 
@@ -129,3 +120,4 @@ class OpenApiSorter:
             return data is not None
         except (YAMLError, ScannerError):
             return False
+        
