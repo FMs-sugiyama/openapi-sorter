@@ -1,8 +1,7 @@
 import json
 import re
 import traceback
-from pprint import pprint
-from typing import List, Optional, Tuple, Any
+from typing import List, Tuple
 
 import yaml
 from openapi_spec_validator import validate_spec
@@ -13,44 +12,6 @@ from yaml.scanner import ScannerError
 
 
 class OpenApiSorter:
-    _targets: List[str] = []
-
-    @classmethod
-    def _check_paths(cls, paths: dict):
-        for path_name, path_items in paths.items():
-            if re.search(r'{[a-zA-Z0-9]+}', path_name):
-                cls._targets.append(path_name)
-
-    @classmethod
-    def _check_properties(cls, properties: dict):
-        for property_item in properties.values():
-            if example := property_item.get("example"):
-                if property_type := property_item.get("type"):
-                    if property_type == "string" and (re.match(r"-", example) or re.search(r"[\[\]{}:\"]", example)):
-                        cls._targets.append(example)
-
-    @classmethod
-    def _check_components(cls, components):
-        schemas = components.get("schemas")
-
-        if not schemas:
-            return
-
-        for schema_item in schemas.values():
-            if properties := schema_item.get("properties"):
-                cls._check_properties(properties=properties)
-
-            if all_of_items := schema_item.get("allOf"):
-                for all_of_item in all_of_items:
-                    if properties := all_of_item.get("properties"):
-                        cls._check_properties(properties=properties)
-
-    @classmethod
-    def _check_servers(cls, servers: list[dict]):
-        for server in servers:
-            if url := server.get("url"):
-                cls._targets.append(url)
-
     @classmethod
     def sort(
         cls, input_files: List[str], output_file: str = None, is_overwrite: bool = False
@@ -78,17 +39,12 @@ class OpenApiSorter:
                 Loader=yaml.SafeLoader,
             )
 
-            # 1ファイルごとに初期化
-            cls._targets = []
-
             for key, value in openapi_json.items():
                 if key == 'paths':
-                    cls._check_paths(paths=value)
                     paths = sorted([path for path, _ in value.items()], key=lambda x: x)
                     new_value = {path: value.get(path) for path in paths}
                     openapi_json.update({'paths': new_value})
                 elif key == 'components':
-                    cls._check_components(components=value)
                     for component_key, component_value in value.items():
                         if component_key in ['requestBodies', 'schemas']:
                             keys = sorted([key for key, _ in component_value.items()], key=lambda x: x)
@@ -97,8 +53,6 @@ class OpenApiSorter:
                 elif key == 'tags':
                     if isinstance(value, List):
                         openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
-                elif key == 'servers':
-                    cls._check_servers(servers=value)
 
             yaml.add_representer(str, cls._represent_str)
 
@@ -112,14 +66,15 @@ class OpenApiSorter:
 
         return not errors, errors
 
+    # 「-」は先頭にある場合のみシングルクオーテーションが付与される
+
     @classmethod
     def _represent_str(cls, dumper, instance):
-        if instance in cls._targets:
+        if "\n" in instance:
+            instance = "\n".join([line.rstrip() for line in instance.splitlines() if line != ""])
+            return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="|")
+        elif isinstance(instance, str) and (re.match(r"-", instance) or re.search(r"[\[\]{}:\"]", instance)):
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
-        elif "\n" in instance:
-            lines = [line.rstrip() for line in instance.splitlines()]
-            instance = "\n".join(lines)
-            return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style='|')
         else:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance)
 
