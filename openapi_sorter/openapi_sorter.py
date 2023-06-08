@@ -71,7 +71,7 @@ class OpenApiSorter:
     @classmethod
     def _represent_str(cls, dumper, instance):
         if "\n" in instance:
-            instance = "\n".join([line.rstrip() for line in instance.splitlines() if line != ""])
+            instance = "\n".join([line.rstrip() for line in instance.splitlines()])
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="|")
         elif isinstance(instance, str) and (re.match(r"-", instance) or re.search(r"[\[\]{}:\"]", instance)):
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
