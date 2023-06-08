@@ -117,7 +117,7 @@ class OpenApiSorter:
         if instance in cls._targets:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
         elif "\n" in instance:
-            lines = [line.rstrip() for line in instance.splitlines() if line != ""]
+            lines = [line.rstrip() for line in instance.splitlines()]
             instance = "\n".join(lines)
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style='|')
         else:
