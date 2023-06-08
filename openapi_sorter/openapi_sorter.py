@@ -48,6 +48,8 @@ class OpenApiSorter:
     @classmethod
     def _check_servers(cls, servers: list[dict]):
         for server in servers:
+            if url := server.get("url"):
+                cls._targets.append(url)
             if description := server.get("description"):
                 cls._targets.append(description)
 
