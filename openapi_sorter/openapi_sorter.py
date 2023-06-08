@@ -22,12 +22,34 @@ class OpenApiSorter:
                 cls._targets.append(path_name)
 
     @classmethod
+    def _check_properties(cls, properties: dict):
+        for property_item in properties.values():
+            if example := property_item.get("example"):
+                if property_type := property_item.get("type"):
+                    if property_type == "string" and (re.match(r"-", example) or re.search(r"[\[\]{}:\"]", example)):
+                        cls._targets.append(example)
+
+    @classmethod
+    def _check_components(cls, components):
+        schemas = components.get("schemas")
+
+        if not schemas:
+            return
+
+        for schema_item in schemas.values():
+            if properties := schema_item.get("properties"):
+                cls._check_properties(properties=properties)
+
+            if all_of_items := schema_item.get("allOf"):
+                for all_of_item in all_of_items:
+                    if properties := all_of_item.get("properties"):
+                        cls._check_properties(properties=properties)
+
+    @classmethod
     def _check_servers(cls, servers: list[dict]):
         for server in servers:
             if description := server.get("description"):
                 cls._targets.append(description)
-            if example := server.get("example"):
-                cls._targets.append(example)
 
     @classmethod
     def sort(
@@ -58,7 +80,6 @@ class OpenApiSorter:
 
             # 1ファイルごとに初期化
             cls._targets = []
-            # cls._check_quotation(definitions=openapi_json)
 
             for key, value in openapi_json.items():
                 if key == 'paths':
@@ -67,6 +88,7 @@ class OpenApiSorter:
                     new_value = {path: value.get(path) for path in paths}
                     openapi_json.update({'paths': new_value})
                 elif key == 'components':
+                    cls._check_components(components=value)
                     for component_key, component_value in value.items():
                         if component_key in ['requestBodies', 'schemas']:
                             keys = sorted([key for key, _ in component_value.items()], key=lambda x: x)
@@ -120,4 +142,3 @@ class OpenApiSorter:
             return data is not None
         except (YAMLError, ScannerError):
             return False
-        
