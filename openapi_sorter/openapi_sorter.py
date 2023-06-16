@@ -94,7 +94,7 @@ class OpenApiSorter:
     @classmethod
     def is_valid_yaml(cls, input_file: str):
         try:
-            with open(input_file, "r", encoding="utf_8") as file:
+            with open(input_file, "r") as file:
                 data = yaml.safe_load(file)
             return data is not None
         except (YAMLError, ScannerError):
