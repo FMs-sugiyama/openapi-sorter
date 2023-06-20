@@ -14,6 +14,10 @@ from yaml.scanner import ScannerError
 
 class OpenApiSorter:
     @classmethod
+    def check_is_sorted(cls, items: list[str]) -> bool:
+        return all([i for i in range(len(items) - 1) if items[i] <= items[i + 1]])
+
+    @classmethod
     def sort(
         cls, input_files: List[str], output_file: str = None, is_overwrite: bool = False
     ) -> Tuple[bool, List[str]]:
@@ -41,7 +45,6 @@ class OpenApiSorter:
             convert_dict_start_time = perf_counter()
 
             openapi_json = yaml.load(loaded_yaml, Loader=yaml.CSafeLoader)
-            
 
             convert_dict_end_time = perf_counter()
             print(f"YAMLから辞書への変換にかかった時間 → {convert_dict_end_time - convert_dict_start_time}秒")
@@ -50,15 +53,19 @@ class OpenApiSorter:
 
             for key, value in openapi_json.items():
                 if key == 'paths':
-                    paths = sorted([path for path, _ in value.items()], key=lambda x: x)
-                    new_value = {path: value.get(path) for path in paths}
-                    openapi_json.update({'paths': new_value})
+                    paths = [path for path, _ in value.items()]
+                    if cls.check_is_sorted(items=paths):
+                        paths = sorted(paths, key=lambda x: x)
+                        new_value = {path: value.get(path) for path in paths}
+                        openapi_json.update({'paths': new_value})
                 elif key == 'components':
                     for component_key, component_value in value.items():
                         if component_key in ['requestBodies', 'schemas']:
-                            keys = sorted([key for key, _ in component_value.items()], key=lambda x: x)
-                            new_value = {key: component_value.get(key) for key in keys}
-                            value.update({component_key: new_value})
+                            keys = [key for key, _ in component_value.items()]
+                            if cls.check_is_sorted(items=keys):
+                                keys = sorted(keys, key=lambda x: x)
+                                new_value = {key: component_value.get(key) for key in keys}
+                                value.update({component_key: new_value})
                 elif key == 'tags':
                     if isinstance(value, List):
                         openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
