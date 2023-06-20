@@ -1,6 +1,7 @@
 import json
 import re
 import traceback
+from time import perf_counter
 from typing import List, Tuple
 
 import yaml
@@ -30,14 +31,22 @@ class OpenApiSorter:
             if is_overwrite:
                 output_file = input_file
 
-            openapi_json = yaml.load(
-                open(
-                    input_file,
-                    mode='r',
-                    encoding='utf_8',
-                ),
-                Loader=yaml.SafeLoader,
-            )
+            load_yaml_start_time = perf_counter()
+
+            loaded_yaml = open(input_file, mode='r', encoding='utf_8')
+
+            load_yaml_end_time = perf_counter()
+            print(f"YAMLファイルの読み込みにかかった時間 → {load_yaml_end_time - load_yaml_start_time}秒")
+
+            convert_dict_start_time = perf_counter()
+
+            openapi_json = yaml.load(loaded_yaml, Loader=yaml.CSafeLoader)
+            
+
+            convert_dict_end_time = perf_counter()
+            print(f"YAMLから辞書への変換にかかった時間 → {convert_dict_end_time - convert_dict_start_time}秒")
+
+            sort_dict_start_time = perf_counter()
 
             for key, value in openapi_json.items():
                 if key == 'paths':
@@ -54,7 +63,21 @@ class OpenApiSorter:
                     if isinstance(value, List):
                         openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
 
+            sort_dict_end_time = perf_counter()
+            print(f"辞書のソートにかかった時間 → {sort_dict_end_time - sort_dict_start_time}秒")
+
             yaml.add_representer(str, cls._represent_str)
+
+            # 時間計測のため辞書→yamlの変換とファイル書き込みを分離(.dumpで直接ファイル出力しない)
+
+            dump_dict_start_time = perf_counter()
+
+            dumped_yaml = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False, indent=2)
+
+            dump_dict_end_time = perf_counter()
+            print(f"辞書からYAMLの変換にかかった時間 → {dump_dict_end_time - dump_dict_start_time}秒")
+
+            create_file_start_time = perf_counter()
 
             with open(
                 output_file,
@@ -62,7 +85,10 @@ class OpenApiSorter:
                 encoding='utf_8',
                 newline='\n',
             ) as f:
-                yaml.dump(openapi_json, f, allow_unicode=True, sort_keys=False, indent=2)
+                f.write(dumped_yaml)
+
+            create_file_end_time = perf_counter()
+            print(f"ファイル書き込みにかかった時間 → {create_file_end_time - create_file_start_time}秒")
 
         return not errors, errors
 
