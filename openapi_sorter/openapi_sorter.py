@@ -35,6 +35,8 @@ class OpenApiSorter:
             if is_overwrite:
                 output_file = input_file
 
+            print(f"{input_file}のソートを実施します")
+
             load_yaml_start_time = perf_counter()
 
             loaded_yaml = open(input_file, mode='r', encoding='utf_8')
@@ -80,7 +82,7 @@ class OpenApiSorter:
 
             dump_dict_start_time = perf_counter()
 
-            dumped_yaml = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False, indent=2)
+            dumped_yaml = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False, indent=2, Dumper=yaml.CSafeDumper)
 
             dump_dict_end_time = perf_counter()
             print(f"辞書からYAMLの変換にかかった時間 → {dump_dict_end_time - dump_dict_start_time}秒")
