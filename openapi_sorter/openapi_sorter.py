@@ -54,7 +54,7 @@ class OpenApiSorter:
             for key, value in openapi_json.items():
                 if key == 'paths':
                     paths = [path for path, _ in value.items()]
-                    if cls.check_is_sorted(items=paths):
+                    if not cls.check_is_sorted(items=paths):
                         paths = sorted(paths, key=lambda x: x)
                         new_value = {path: value.get(path) for path in paths}
                         openapi_json.update({'paths': new_value})
@@ -62,7 +62,7 @@ class OpenApiSorter:
                     for component_key, component_value in value.items():
                         if component_key in ['requestBodies', 'schemas']:
                             keys = [key for key, _ in component_value.items()]
-                            if cls.check_is_sorted(items=keys):
+                            if not cls.check_is_sorted(items=keys):
                                 keys = sorted(keys, key=lambda x: x)
                                 new_value = {key: component_value.get(key) for key in keys}
                                 value.update({component_key: new_value})
