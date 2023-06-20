@@ -76,7 +76,7 @@ class OpenApiSorter:
             sort_dict_end_time = perf_counter()
             print(f"辞書のソートにかかった時間 → {sort_dict_end_time - sort_dict_start_time}秒")
 
-            yaml.add_representer(str, cls._represent_str)
+            yaml.add_representer(str, cls._represent_str, Dumper=yaml.CSafeDumper)
 
             # 時間計測のため辞書→yamlの変換とファイル書き込みを分離(.dumpで直接ファイル出力しない)
 
