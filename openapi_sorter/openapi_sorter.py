@@ -68,7 +68,8 @@ class OpenApiSorter:
                                 value.update({component_key: new_value})
                 elif key == 'tags':
                     if isinstance(value, List):
-                        openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
+                        if not cls.check_is_sorted(items=[tag.get('name') for tag in value]):
+                            openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
 
             sort_dict_end_time = perf_counter()
             print(f"辞書のソートにかかった時間 → {sort_dict_end_time - sort_dict_start_time}秒")
