@@ -15,9 +15,9 @@ from yaml.scanner import ScannerError
 # 特殊文字(special characters)は先頭にある場合にのみクオーテーションがつくものと、出現位置に関係なくクオーテーションがつくものがある
 # yes/noは真偽値true/falseとして扱われる
 
-MATCH_REGEX = re.compile(r"[{}\[\]&:*#?|.\-<>=!%@]")
+MATCH_REGEX = re.compile(r"[&*#!?|\-<>=%@]")
 SEARCH_REGEX = re.compile(r"[\[\]{}:\"]")
-FULL_MATCH_REGEX = re.compile(r"yes|no")
+FULL_MATCH_REGEX = re.compile(r"yes|no|on|off|y|n")
 
 
 class OpenApiSorter:
@@ -110,7 +110,8 @@ class OpenApiSorter:
 
         return not errors, errors
 
-    # 「-」は先頭にある場合のみシングルクオーテーションが付与される
+    # API定義のクエリパラメータ以外にtrue/falseを記載するとdumpでエラーになる
+    # on/offなどはエラーにならない
 
     @classmethod
     def _represent_str(cls, dumper, instance):
