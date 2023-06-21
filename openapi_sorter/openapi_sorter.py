@@ -12,6 +12,14 @@ from yaml import YAMLError
 from yaml.scanner import ScannerError
 
 
+# 特殊文字(special characters)は先頭にある場合にのみクオーテーションがつくものと、出現位置に関係なくクオーテーションがつくものがある
+# yes/noは真偽値true/falseとして扱われる
+
+MATCH_REGEX = re.compile(r"[{}\[\]&:*#?|.\-<>=!%@]")
+SEARCH_REGEX = re.compile(r"[\[\]{}:\"]")
+FULL_MATCH_REGEX = re.compile(r"yes|no")
+
+
 class OpenApiSorter:
     @classmethod
     def check_is_sorted(cls, items: list[str]) -> bool:
@@ -109,7 +117,7 @@ class OpenApiSorter:
         if "\n" in instance:
             instance = "\n".join([line.rstrip() for line in instance.splitlines()])
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="|")
-        elif isinstance(instance, str) and (re.match(r"-", instance) or re.search(r"[\[\]{}:\"]", instance)):
+        elif re.match(MATCH_REGEX, instance) or re.search(SEARCH_REGEX, instance) or re.fullmatch(FULL_MATCH_REGEX, instance):
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
         else:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance)
