@@ -1,11 +1,10 @@
-import json
 import re
 import traceback
 from time import perf_counter
 from typing import List, Tuple
 
+
 import yaml
-from openapi_spec_validator import validate_spec
 from openapi_spec_validator.readers import read_from_filename
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError, ValidatorDetectError
 from yaml import YAMLError
@@ -13,18 +12,15 @@ from yaml.scanner import ScannerError
 
 
 # 特殊文字(special characters)は先頭にある場合にのみクオーテーションがつくものと、出現位置に関係なくクオーテーションがつくものがある
-# yes/noは真偽値true/falseとして扱われる
+# stoplightでon・off・yes・no・y・n・fa・seにクォーテーションがつく → PyYAMLで読み込んだ後もクォーテーションがついたままなので対応不要
+# API定義のクエリパラメータ以外にtrue/falseを記載するとエラーになる
+# on・off・yes・no・y・n・fa・seはエラーにならない
 
 MATCH_REGEX = re.compile(r"[&*#!?|\-<>=%@]")
 SEARCH_REGEX = re.compile(r"[\[\]{}:\"]")
-FULL_MATCH_REGEX = re.compile(r"yes|no|on|off|y|n")
 
 
 class OpenApiSorter:
-    @classmethod
-    def check_is_sorted(cls, items: list[str]) -> bool:
-        return all([i for i in range(len(items) - 1) if items[i] <= items[i + 1]])
-
     @classmethod
     def sort(
         cls, input_files: List[str], output_file: str = None, is_overwrite: bool = False
@@ -64,22 +60,19 @@ class OpenApiSorter:
             for key, value in openapi_json.items():
                 if key == 'paths':
                     paths = [path for path, _ in value.items()]
-                    if not cls.check_is_sorted(items=paths):
-                        paths = sorted(paths, key=lambda x: x)
-                        new_value = {path: value.get(path) for path in paths}
-                        openapi_json.update({'paths': new_value})
+                    paths = sorted(paths, key=lambda x: x)
+                    new_value = {path: value.get(path) for path in paths}
+                    openapi_json.update({'paths': new_value})
                 elif key == 'components':
                     for component_key, component_value in value.items():
                         if component_key in ['requestBodies', 'schemas']:
                             keys = [key for key, _ in component_value.items()]
-                            if not cls.check_is_sorted(items=keys):
-                                keys = sorted(keys, key=lambda x: x)
-                                new_value = {key: component_value.get(key) for key in keys}
-                                value.update({component_key: new_value})
+                            keys = sorted(keys, key=lambda x: x)
+                            new_value = {key: component_value.get(key) for key in keys}
+                            value.update({component_key: new_value})
                 elif key == 'tags':
                     if isinstance(value, List):
-                        if not cls.check_is_sorted(items=[tag.get('name') for tag in value]):
-                            openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
+                        openapi_json.update({'tags': sorted(value, key=lambda x: x.get('name'))})
 
             sort_dict_end_time = perf_counter()
             print(f"辞書のソートにかかった時間 → {sort_dict_end_time - sort_dict_start_time}秒")
@@ -110,15 +103,12 @@ class OpenApiSorter:
 
         return not errors, errors
 
-    # API定義のクエリパラメータ以外にtrue/falseを記載するとdumpでエラーになる
-    # on/offなどはエラーにならない
-
     @classmethod
     def _represent_str(cls, dumper, instance):
         if "\n" in instance:
             instance = "\n".join([line.rstrip() for line in instance.splitlines()])
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="|")
-        elif re.match(MATCH_REGEX, instance) or re.search(SEARCH_REGEX, instance) or re.fullmatch(FULL_MATCH_REGEX, instance):
+        elif re.match(MATCH_REGEX, instance) or re.search(SEARCH_REGEX, instance):
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance, style="'")
         else:
             return dumper.represent_scalar('tag:yaml.org,2002:str', instance)
