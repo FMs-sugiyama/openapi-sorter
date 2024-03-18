@@ -128,7 +128,6 @@ class OpenApiSorter:
 
     @classmethod
     def is_valid_yaml(cls, input_file: str):
-        print(input_file)
         try:
             with open(input_file, "r") as file:
                 data = yaml.safe_load(file)
