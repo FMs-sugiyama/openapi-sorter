@@ -50,7 +50,7 @@ class OpenApiSorter:
 
             convert_dict_start_time = perf_counter()
 
-            openapi_json = yaml.load(loaded_yaml, Loader=yaml.CSafeLoader)
+            openapi_json = yaml.load(loaded_yaml, Loader=yaml.SafeLoader)
 
             convert_dict_end_time = perf_counter()
             print(f"YAMLから辞書への変換にかかった時間 → {convert_dict_end_time - convert_dict_start_time}秒")
@@ -77,13 +77,13 @@ class OpenApiSorter:
             sort_dict_end_time = perf_counter()
             print(f"辞書のソートにかかった時間 → {sort_dict_end_time - sort_dict_start_time}秒")
 
-            yaml.add_representer(str, cls._represent_str, Dumper=yaml.CSafeDumper)
+            yaml.add_representer(str, cls._represent_str, Dumper=yaml.SafeDumper)
 
             # 時間計測のため辞書→yamlの変換とファイル書き込みを分離(.dumpで直接ファイル出力しない)
 
             dump_dict_start_time = perf_counter()
 
-            dumped_yaml = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False, indent=2, Dumper=yaml.CSafeDumper)
+            dumped_yaml = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False, indent=2, Dumper=yaml.SafeDumper)
 
             dump_dict_end_time = perf_counter()
             print(f"辞書からYAMLの変換にかかった時間 → {dump_dict_end_time - dump_dict_start_time}秒")
